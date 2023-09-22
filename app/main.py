@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import uvicorn
 import pickle
-from celeryapp.tasks import train_model_task
+from app.celeryapp.tasks import train_model_task
 
 app = FastAPI(debug=True)
 

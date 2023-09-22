@@ -45,6 +45,9 @@ def write_log(model_id, alpha, l1_ratio, rmse,mae,r2):
             f.writelines("{},{},{},{},{},{}\n".format(model_id, alpha, l1_ratio, rmse,mae,r2))
 
 
+def save_artifact(model, model_id):
+    pass
+
 def train_elastic_model(alpha, l1_ratio, model_id=None):
     if model_id is None:
         model_id = generate_model_id()

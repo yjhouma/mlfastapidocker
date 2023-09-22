@@ -1,7 +1,7 @@
 from celery import Celery
 from celery import current_task
 
-import mlmodule.train as train
+import app.mlmodule.train as train
 from .worker import celery
 
 
