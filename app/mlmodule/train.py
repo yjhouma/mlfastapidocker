@@ -1,15 +1,20 @@
-import os
 import warnings
 import sys
 import random
 import string
 
+from google.cloud import firestore
+
+
 import pickle
 import pandas as pd
 import numpy as np
+from google.cloud import storage
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import ElasticNet
+
+from app.config.config import GOOGLE_CLOUD_STORAGE_BUCKET_NAME, MODEL_ARTIFACT_ROOT_DIRECTORY,GOOGLE_CLOUD_PROJECT,FIRESTORE_COLLECTION
 
 
 model_path = "model/"
@@ -38,19 +43,23 @@ def generate_model_id():
     return ids
 
 def write_log(model_id, alpha, l1_ratio, rmse,mae,r2):
-    if not os.path.exists(log_file):
-        with open(log_file, "w") as f:
-            f.writelines("model_id,alpha,l1_ratio,rmse,mae,r2\n")
-    with open(log_file, "a") as f:
-            f.writelines("{},{},{},{},{},{}\n".format(model_id, alpha, l1_ratio, rmse,mae,r2))
-
+    db=firestore.Client(GOOGLE_CLOUD_PROJECT)
+    doc_ref = db.collection(FIRESTORE_COLLECTION).document(model_id)
+    doc_ref.set({"model_id": model_id, "alpha": alpha, "l1_ratio":l1_ratio, "rmse":rmse, "mae":mae, "r2":r2})
 
 def save_artifact(model, model_id):
-    pass
-
+    blob_name = MODEL_ARTIFACT_ROOT_DIRECTORY+model_id+".pkl"
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(GOOGLE_CLOUD_STORAGE_BUCKET_NAME)
+    blob = bucket.blob(blob_name)
+    m = pickle.dumps(model)
+        # blob.upload_from_filename(file_path)
+    blob.upload_from_string(m)
+    
 def train_elastic_model(alpha, l1_ratio, model_id=None):
     if model_id is None:
         model_id = generate_model_id()
+
     train_x, train_y, test_x, test_y = load_data("data/winequality-white.csv",delimiter=';')
     lr = ElasticNet(alpha=alpha,l1_ratio=l1_ratio,random_state=101)
     lr.fit(train_x, train_y)
@@ -66,8 +75,7 @@ def train_elastic_model(alpha, l1_ratio, model_id=None):
          r2=r2
     )
 
-    with open(model_path+model_id+'.pkl','wb') as f:
-        pickle.dump(lr, f)
+    save_artifact(lr, model_id)
     
     return (rmse, mae, r2)
      

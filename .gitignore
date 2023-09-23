@@ -68,6 +68,8 @@ instance/
 # Scrapy stuff:
 .scrapy
 
+test.py
+gcp_key.json
 # Sphinx documentation
 docs/_build/
 
@@ -115,6 +117,7 @@ __pypackages__/
 # Celery stuff
 celerybeat-schedule
 celerybeat.pid
+.DS_Store
 
 # SageMath parsed files
 *.sage.py
