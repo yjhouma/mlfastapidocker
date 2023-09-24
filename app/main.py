@@ -2,6 +2,7 @@ from fastapi import FastAPI
 import uvicorn
 import pickle
 from app.celeryapp.tasks import train_model_task
+from .schemas import TrainInput, PredictInput
 
 app = FastAPI(debug=True)
 
@@ -10,31 +11,40 @@ def home():
     return {'text': 'home page'}
 
 @app.post('/train_model')
-def run_train_model(alpha: float, l1_ratio: float):
-    result = train_model_task.delay(alpha,l1_ratio)
-    return {
-        "message": "Training task started with alpha={} and l1_ratio={}".format(alpha,l1_ratio),
-        "task_id":result.id
-        }
+def run_train_model(trainInput: TrainInput):
+    return trainInput
+    # result = train_model_task.delay(alpha,l1_ratio)
+    # return {
+    #     "message": "Training task started with alpha={} and l1_ratio={}".format(alpha,l1_ratio),
+    #     "task_id":result.id
+    #     }
 
-@app.get('/predict')
-def predict(model_id: str
-            ,fixed_acidity: float
-            ,volatile_acidity: float
-            ,citric_acid: float
-            ,residual_sugar: float
-            ,chlorides: float
-            ,free_sulfur_dioxide: float
-            ,total_sulfur_dioxide: float
-            ,density: float
-            ,pH: float
-            ,sulphates: float
-            ,alcohol: float):
-    model = pickle.load(open('model/'+model_id+'.pkl','rb'))
-    prediction = model.predict([[fixed_acidity,volatile_acidity,citric_acid,residual_sugar,chlorides,free_sulfur_dioxide,total_sulfur_dioxide,density,pH,sulphates,alcohol]])
-    print(prediction)
+# @app.post('/predict')
+# def predict(model_id: str
+#             ,fixed_acidity: float
+#             ,volatile_acidity: float
+#             ,citric_acid: float
+#             ,residual_sugar: float
+#             ,chlorides: float
+#             ,free_sulfur_dioxide: float
+#             ,total_sulfur_dioxide: float
+#             ,density: float
+#             ,pH: float
+#             ,sulphates: float
+#             ,alcohol: float):
+#     model = pickle.load(open('model/'+model_id+'.pkl','rb'))
+#     prediction = model.predict([[fixed_acidity,volatile_acidity,citric_acid,residual_sugar,chlorides,free_sulfur_dioxide,total_sulfur_dioxide,density,pH,sulphates,alcohol]])
+#     print(prediction)
 
-    return {round(prediction[0],2)}
+#     return {round(prediction[0],2)}
+
+@app.post('/predict')
+def predict(predict_input: PredictInput):
+    # model = pickle.load(open('model/'+model_id+'.pkl','rb'))
+    # prediction = model.predict([[fixed_acidity,volatile_acidity,citric_acid,residual_sugar,chlorides,free_sulfur_dioxide,total_sulfur_dioxide,density,pH,sulphates,alcohol]])
+    # print(prediction)
+
+    return predict_input
 
 @app.get('/train-status/{task_id}')
 def get_task_status(task_id: str):
