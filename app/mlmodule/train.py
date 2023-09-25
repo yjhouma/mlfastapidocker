@@ -10,49 +10,27 @@ from google.cloud import storage
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import ElasticNet
-from app.config.config import GOOGLE_CLOUD_STORAGE_BUCKET_NAME, MODEL_ARTIFACT_ROOT_DIRECTORY,GOOGLE_CLOUD_PROJECT,FIRESTORE_COLLECTION
-from abc import ABC, abstractmethod
+from mlmodule.base import Model
+from config.config import GOOGLE_CLOUD_STORAGE_BUCKET_NAME, MODEL_ARTIFACT_ROOT_DIRECTORY,GOOGLE_CLOUD_PROJECT,FIRESTORE_COLLECTION
 from io import BytesIO
+import warnings
+from mlmodule.base import *
 
 
-class DataLoader(ABC):
-    @abstractmethod
-    def load_data(self):
-        # Return a DataFrame that are ready to use for training!!!
-        pass
 
-class Model(ABC):
-    @abstractmethod
-    def train(self, train_data: DataLoader, split_test_train=True, test_data: DataLoader = None):
-        pass
 
-    @abstractmethod
-    def predict(self, input_data: dict):
-        pass
 
-class CSVGoogleCloudStorageDataLoader(DataLoader):
-    def __init__(self, blob_name, delimiter=','):
-        self.delimiter=','
-        self.__storage_client = storage.Client()
-        self.__bucket = self.__storage_client.get_bucket(GOOGLE_CLOUD_STORAGE_BUCKET_NAME)
-        self.blob = self.__bucket.blob(blob_name)
 
-    def load_data(self):
-        byte_stream = BytesIO()
-        self.blob.download_to_file(byte_stream)
-        byte_stream.seek(0)
-        return pd.read_csv(byte_stream, delimiter=self.delimiter)
+# def save_artifact(model, model_id):
+#     blob_name = MODEL_ARTIFACT_ROOT_DIRECTORY+model_id+".pkl"
+#     storage_client = storage.Client()
+#     bucket = storage_client.get_bucket(GOOGLE_CLOUD_STORAGE_BUCKET_NAME)
+#     blob = bucket.blob(blob_name)
+#     m = pickle.dumps(model)
+#         # blob.upload_from_filename(file_path)
+#     blob.upload_from_string(m)
     
 
-class ElasticNetModel(Model):
-    def __init__(self, model_id: str, alpha=0.5, l1_ratio=0.5):
-        self.model_id = model_id
-        self.__alpha=alpha
-        self.__l1_ratio=l1_ratio
-        self.model = ElasticNet(alpha=alpha,l1_ratio=l1_ratio,random_state=101)
-    
-    def train(self, train_data: DataLoader, split_test_train=True, test_data: DataLoader = None):
-        pass
 
 
 def eval_metrics(actual, pred):
