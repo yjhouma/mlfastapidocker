@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import uvicorn
 import pickle
-from app.celeryapp.tasks import train_model_task
+from app.celeryapp.tasks import train_model_task, prediction_task
 from .schemas import TrainInput, PredictInput
 
 app = FastAPI(debug=True)
@@ -12,12 +12,11 @@ def home():
 
 @app.post('/train_model')
 def run_train_model(trainInput: TrainInput):
-    return trainInput
-    # result = train_model_task.delay(alpha,l1_ratio)
-    # return {
-    #     "message": "Training task started with alpha={} and l1_ratio={}".format(alpha,l1_ratio),
-    #     "task_id":result.id
-    #     }
+    result = train_model_task.delay(**trainInput.parameters)
+    return {
+        "message": "Training task started with alpha={} and l1_ratio={}".format(trainInput.parameters['alpha'],trainInput.parameters['l1_ratio']),
+        "task_id":result.id
+        }
 
 # @app.post('/predict')
 # def predict(model_id: str
@@ -40,6 +39,13 @@ def run_train_model(trainInput: TrainInput):
 
 @app.post('/predict')
 def predict(predict_input: PredictInput):
+    result = prediction_task.delay(predict_input.model_id, dict(predict_input.data_input))
+    return {
+        "message": "Predicting Task started using model_id = {}".format(predict_input.model_id),
+        "predict_id": result.id
+    }
+
+    # model_id
     # model = pickle.load(open('model/'+model_id+'.pkl','rb'))
     # prediction = model.predict([[fixed_acidity,volatile_acidity,citric_acid,residual_sugar,chlorides,free_sulfur_dioxide,total_sulfur_dioxide,density,pH,sulphates,alcohol]])
     # print(prediction)

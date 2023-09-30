@@ -1,6 +1,6 @@
-from mlmodule.base import DataLoader, TrainLogger, ArtifactSaver, Model
+from .base import DataLoader, TrainLogger, ArtifactSaver, Model, ModelLoader
 from google.cloud import storage, firestore
-from config.config import GOOGLE_CLOUD_STORAGE_BUCKET_NAME, MODEL_ARTIFACT_ROOT_DIRECTORY,GOOGLE_CLOUD_PROJECT,FIRESTORE_COLLECTION
+from app.config.config import GOOGLE_CLOUD_STORAGE_BUCKET_NAME, MODEL_ARTIFACT_ROOT_DIRECTORY,GOOGLE_CLOUD_PROJECT,FIRESTORE_COLLECTION
 from io import BytesIO
 from datetime import datetime
 import pytz
@@ -43,3 +43,14 @@ class GoogleCloudStorageArtifactSaver(ArtifactSaver):
         blob = bucket.blob(blob_name)
         m = pickle.dumps(model)
         blob.upload_from_string(m)
+
+
+class GoogleCloudStorageModelLoader(ModelLoader):
+    def load_model(self, model_id):
+        storage_client = storage.Client()
+        bucket = storage_client.get_bucket(GOOGLE_CLOUD_STORAGE_BUCKET_NAME)
+        blob_name = MODEL_ARTIFACT_ROOT_DIRECTORY+model_id+".pkl"
+        blob = bucket.blob(blob_name=blob_name)
+        pickle_in = blob.download_as_string()
+        model = pickle.loads(pickle_in)
+        return model

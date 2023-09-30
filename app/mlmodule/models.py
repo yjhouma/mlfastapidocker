@@ -1,9 +1,10 @@
 import warnings
-from mlmodule.base import Model, Evaluator, DataLoader, TrainLogger
+from .base import Model, Evaluator, DataLoader, TrainLogger
 from sklearn.linear_model import ElasticNet
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import numpy as np
 from sklearn.model_selection import train_test_split
+import pandas as pd
 
 
 
@@ -44,4 +45,7 @@ class ElasticNetModel(Model):
         return test_metrics
     
     def predict(self, input_data: dict):
-        return 5.6
+        # print(input_data)
+        inpt = pd.DataFrame([input_data])
+        result = self.model.predict(inpt)
+        return result

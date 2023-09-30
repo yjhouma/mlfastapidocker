@@ -29,6 +29,11 @@ class Model(ABC):
 
 
 
+class ModelLoader(ABC):
+    @abstractmethod
+    def load_model(self, model_id: str) -> Model:
+        pass
+
 class ArtifactSaver(ABC):
     @abstractmethod
     def save_model(self, model: Model) -> None:
