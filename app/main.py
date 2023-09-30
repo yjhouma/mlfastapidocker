@@ -50,12 +50,22 @@ def predict(predict_input: PredictInput):
     # prediction = model.predict([[fixed_acidity,volatile_acidity,citric_acid,residual_sugar,chlorides,free_sulfur_dioxide,total_sulfur_dioxide,density,pH,sulphates,alcohol]])
     # print(prediction)
 
-    return predict_input
 
 @app.get('/train-status/{task_id}')
 def get_task_status(task_id: str):
     celery_result = train_model_task.AsyncResult(task_id)
 
+    if celery_result.state == "PENDING":
+        return {"status":"pending"}
+    elif celery_result.state == "SUCCESS":
+        return {"status": "completed", "result":celery_result.result}
+    elif celery_result.state == "FAILURE":
+        return {"status": "failed", "error_message": str(celery_result.result)}
+
+
+@app.get('/predict-result/{predict_id}')
+def get_predict_result(predict_id):
+    celery_result = prediction_task.AsyncResult(predict_id)
     if celery_result.state == "PENDING":
         return {"status":"pending"}
     elif celery_result.state == "SUCCESS":
